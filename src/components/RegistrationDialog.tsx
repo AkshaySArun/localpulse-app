@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
-import { isPlaceholderConfig } from '@/lib/clerk-auth';
+// import { isPlaceholderConfig } from '@/lib/clerk-auth';
 import Image from 'next/image';
 
 interface RegistrationDialogProps {
@@ -125,9 +125,9 @@ export default function RegistrationDialog({
         };
 
         try {
-            if (isPlaceholderConfig()) {
-                throw new Error("Using placeholder config, skipping Firestore");
-            }
+            // if (isPlaceholderConfig()) {
+            //     throw new Error("Using placeholder config, skipping Firestore");
+            // }
             await addDoc(collection(db, "registrations"), registration);
         } catch (e) {
             const mockRegistrations = JSON.parse(localStorage.getItem('localpulse_registrations') || '[]');
