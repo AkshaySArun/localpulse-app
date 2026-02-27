@@ -8,7 +8,7 @@ import { Home, UserCircle, LayoutDashboard, Settings, PlusCircle, Bell } from 'l
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { SignedIn, SignedOut, useClerk, useUser } from '@/lib/clerk-auth';
+import { SignedIn, SignedOut, useUser, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import SettingsPanel from './SettingsPanel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +36,6 @@ interface AppHeaderProps {
 const AppHeader: FC<AppHeaderProps> = ({ onOpenCreateEventModal }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { openSignIn } = useClerk();
   const { user } = useUser();
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
@@ -69,17 +68,18 @@ const AppHeader: FC<AppHeaderProps> = ({ onOpenCreateEventModal }) => {
     return () => window.removeEventListener('storage', checkUpcoming);
   }, []);
 
-  const handleCreateEventClick = () => {
-    if (user) {
-      if (onOpenCreateEventModal) {
-        onOpenCreateEventModal();
-      } else {
-        router.push('/events/create');
-      }
+  if (!user) {
+    // With Clerk, SignInButton handles redirection implicitly by its configuration or wrapper,
+    // but since we want to trigger it programmatically or via a redirect, we'll let the SignedOut UI handle sign-ins.
+    // Or we can use router to push to a sign in page if we had one.
+    // For this case, we rely on the SignInButton in the UI.
+  } else {
+    if (onOpenCreateEventModal) {
+      onOpenCreateEventModal();
     } else {
-      openSignIn({ redirectUrl: '/events/create' });
+      router.push('/events/create');
     }
-  };
+  }
 
 
   return (
@@ -131,14 +131,16 @@ const AppHeader: FC<AppHeaderProps> = ({ onOpenCreateEventModal }) => {
               <ProfileMenu />
             </SignedIn>
             <SignedOut>
-              <Button
-                variant="default"
-                size="sm"
-                className="rounded-full px-3 py-1.5 text-sm shadow-md"
-                onClick={() => openSignIn({ redirectUrl: pathname })}
-              >
-                Sign In / Up
-              </Button>
+              <SignInButton mode="modal">
+                <Button variant="default" size="sm" className="rounded-full px-3 py-1.5 text-sm shadow-md">
+                  Sign In
+                </Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button variant="outline" size="sm" className="rounded-full px-3 py-1.5 text-sm shadow-md ml-2 hidden sm:inline-flex">
+                  Sign Up
+                </Button>
+              </SignUpButton>
             </SignedOut>
             {/* "Create Event" button visible on mobile when signed in, if above is hidden by sm:flex */}
             <SignedIn>
